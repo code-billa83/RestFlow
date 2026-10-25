@@ -30,8 +30,16 @@ export async function getCurrentUser() {
     const { payload } = await jwtVerify(token, secretKey());
     if (typeof payload.userId !== "string") return null;
     await connectDB();
-    const user = await User.findById(payload.userId).select("_id name email createdAt").lean();
+    const user = (await User.findById(payload.userId).select("_id name email createdAt").lean()) as any;
+
     if (!user) return null;
-    return { id: String(user._id), name: user.name as string, email: user.email as string, createdAt: user.createdAt as Date };
+
+    return {
+      id: String(user._id),
+      name: user.name as string,
+      email: user.email as string,
+      createdAt: user.createdAt as Date
+    };
+
   } catch { return null; }
 }
