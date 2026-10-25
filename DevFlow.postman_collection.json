@@ -1,0 +1,422 @@
+{
+  "info": {
+    "_postman_id": "devflow-api-collection-v1",
+    "name": "DevFlow API \u2014 Complete Collection",
+    "description": "Complete Postman collection for the DevFlow project. Covers Auth, API Keys, Workflows, Request Logs, Server Proxy, Public API (v1), Webhooks and Cron. Import this file + the DevFlow environment, set your variables, and start testing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@devflow.io\",\n  \"password\": \"SuperSecret1!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@devflow.io\",\n  \"password\": \"SuperSecret1!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. API Keys",
+      "item": [
+        {
+          "name": "Create API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/keys",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "keys"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Test Key\"\n}"
+            },
+            "description": "Returns the full secret ONCE. Save it as the {{api_key}} environment variable immediately."
+          }
+        },
+        {
+          "name": "Revoke API Key",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/keys/{{key_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "keys",
+                "{{key_id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Public API (Bearer key)",
+      "item": [
+        {
+          "name": "Echo (v1)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{api_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/echo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "echo"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"hello\": \"world\",\n    \"source\": \"postman\"\n  }\n}"
+            },
+            "description": "Public endpoint authenticated with a DevFlow API key (df_live_...). Rate limit: 60 req/min per key."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Workflows",
+      "item": [
+        {
+          "name": "Create Workflow",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.workflow) {",
+                  "  pm.environment.set('workflow_id', data.workflow.id);",
+                  "  pm.environment.set('webhook_path', data.workflow.webhookPath);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workflows",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "workflows"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Workflow\",\n  \"targetUrl\": \"https://webhook.site/your-unique-url\",\n  \"intervalMin\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle Workflow (enable/pause)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workflows/{{workflow_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "workflows",
+                "{{workflow_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"toggle\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Run Workflow Now",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/workflows/{{workflow_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "workflows",
+                "{{workflow_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"run\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Webhook Trigger",
+      "item": [
+        {
+          "name": "Trigger Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/{{webhook_path}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "{{webhook_path}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"user.created\",\n  \"userId\": 42\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Server Proxy (Playground backend)",
+      "item": [
+        {
+          "name": "Proxy GET request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/proxy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "proxy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"GET\",\n  \"url\": \"https://jsonplaceholder.typicode.com/todos/1\",\n  \"headers\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Proxy POST with auth header",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/proxy",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "proxy"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"POST\",\n  \"url\": \"https://jsonplaceholder.typicode.com/posts\",\n  \"headers\": [\n    {\n      \"name\": \"Content-Type\",\n      \"value\": \"application/json\"\n    }\n  ],\n  \"body\": \"{\\\"title\\\": \\\"from DevFlow proxy\\\", \\\"userId\\\": 1}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Request Logs",
+      "item": [
+        {
+          "name": "Create Log Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "logs"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"GET\",\n  \"path\": \"/api/health\",\n  \"statusCode\": 200,\n  \"durationMs\": 42\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Cron (scheduler tick)",
+      "item": [
+        {
+          "name": "Run Due Workflows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{cron_secret}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cron",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "cron"
+              ]
+            },
+            "description": "Must be called by a scheduler with the CRON_SECRET. Executes all enabled workflows whose nextRunAt is due."
+          }
+        }
+      ]
+    }
+  ]
+}

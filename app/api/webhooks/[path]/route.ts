@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
+import { Workflow } from "@/lib/models";
+import { safeUrl } from "@/lib/utils";
+export async function POST(request:Request,context:{params:Promise<{path:string}>}){const {path}=await context.params;await connectDB();const w=await Workflow.findOne({webhookPath:path,enabled:true});if(!w)return NextResponse.json({error:"Webhook not found or workflow is paused."},{status:404});try{const payload=await request.json().catch(()=>({}));const target=safeUrl(w.targetUrl);const response=await fetch(target,{method:"POST",headers:{"Content-Type":"application/json","User-Agent":"DevFlow-Webhook/1.0"},body:JSON.stringify({trigger:"webhook",workflowId:String(w._id),payload,timestamp:new Date().toISOString()}),signal:AbortSignal.timeout(10000),redirect:"error"});w.lastRunAt=new Date();w.lastStatus=`HTTP ${response.status}`;await w.save();return NextResponse.json({ok:response.ok,targetStatus:response.status});}catch{w.lastRunAt=new Date();w.lastStatus="Failed";await w.save();return NextResponse.json({error:"Webhook delivery failed or timed out."},{status:502});}}
